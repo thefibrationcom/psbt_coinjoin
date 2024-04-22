@@ -41,3 +41,10 @@
 2. **Join PSBTs:** Coordinator combines separate PSBTs into one using `joinpsbts`.
 3. **User Signing:** Each user signs the joined PSBT and sends it back to the coordinator.
 4. **Finalization and Transmission:** Coordinator finalizes the PSBT with `finalizepsbt` and transmits it to the network using `sendrawtransaction`.
+
+## Manual coinjoin workflow
+![image](https://github.com/thefibrationcom/psbt_coinjoin/assets/167394971/c645495e-0a70-4435-9fa9-a33147a0a06e)
+## 2-of-3 Multisig Workflow
+![image](https://github.com/thefibrationcom/psbt_coinjoin/assets/167394971/bb459cc2-efac-4165-a645-297a7bb050a7)
+
+

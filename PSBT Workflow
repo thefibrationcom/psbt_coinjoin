@@ -1,0 +1,98 @@
+PSBT Workflow
+
+This workflow uses Partially-Signed Bitcoin Transactions to facilitate multi-user CoinJoins
+
+For a multi-user CoinJoin round it is best to pre-agree on an amount to mix
+Assuming participants have agreed that regardless of the amounts/number of individual inputs; output amount will be 0.1 BTC each
+- each participant should do a self CoinJoin to pre-mix UTXOs into outputs that are 0.1 BTC and (equal pairs) of change outputs
+- This is your Tx0 (a concept from the amazing Samourai team)
+- We all have equal amounts going into and coming out of the mix
+- account for any fees you may wish to pay on subsequent mixing rounds 
+- (meaning each user will want to have tx0 outputs from a self CoinJoin of at least 0.10000150.
+- The extra 0.00000150 is to pay the fee and so we get eactly 0.1 mix outputs from the next round)
+- Fees may be less, they are based on total inputs and outputs in your PSBT
+- each "round" is it's own transaction on chain
+
+##1. Listunspent
+## this returns a list of all your unspent outputs (UTXOs)
+## we are going to need the "txid" and "vout" info for each pre-mixed UTXO to add to our CoinJoin
+listunspent
+
+- Add the values of the UTXOs to coinjoin
+  - subtract an amount for the fees (Fees = F)
+  - Divide the remaining value by 2
+    - (UTXO1+UTXO2) = X
+    - (X-F)/2 = CoinJoin_Output
+    
+##getnewaddress - we're going to need 10 new receive addresses
+##run getnewaddress 10 times and paste each address into raw transaction template below
+getnewaddress
+
+##1. Createpsbt
+createpsbt \
+'[{"txid": "txid1", "vout": vout1},
+{"txid": "txid2", "vout": vout2},
+{"txid": "txid3", "vout": vout3},
+{"txid": "txid4", "vout": vout4},
+{"txid": "txid5", "vout": vout5},
+{"txid": "txid6", "vout": vout6},
+{"txid": "txid7", "vout": vout7},
+{"txid": "txid8", "vout": vout8},
+{"txid": "txid9", "vout": vout9},
+{"txid": "txid10", "vout": vout10}]' \
+'{"address1": CoinJoin_Output,
+"address2": CoinJoin_Output,
+"address3": CoinJoin_Output,
+"address4": CoinJoin_Output,
+"address5": CoinJoin_Output,
+"address6": CoinJoin_Output,
+"address7": CoinJoin_Output,
+"address8": CoinJoin_Output,
+"address9": CoinJoin_Output,
+"address10": CoinJoin_Output}'
+
+##Place the raw hex of PSBT_1 for above transaction below;
+PSBT_1rawHex
+
+##Decodepsbt and double check 
+Decodepsbt PSBT_1rawHex
+
+###PSBT_2
+createpsbt \
+'[{"txid": "txid1", "vout": vout1},
+{"txid": "txid2", "vout": vout2},
+{"txid": "txid3", "vout": vout3}, ...]' \
+'{"address1": CoinJoin_Output,
+"address2": CoinJoin_Output,
+"address3": CoinJoin_Output,
+"address4": CoinJoin_Output}'
+
+##Place raw hex of PSBT_2 for above tx below
+PSBT_2rawHex
+
+##Decodepsbt and double check 
+Decodepsbt PSBT_1rawHex
+
+##2. Have individual users send their PSBTs to coordinator
+##3. Coordinator uses joinpsbts to join the separate PSBTs into one
+joinpsbts '["",""]'
+ ##This outputs as; Joined_psbt_raw_hex
+
+
+##3a. Decodepsbt and double check fees (all the way at the bottom), if fees are too high, you messed something up
+
+##4. Coordinator sends the joined PSBT back to each user to sign with walletprocesspsbt
+walletprocesspsbt Joined_psbt_raw_hex
+##walletprocessedpsbt from Wallet 1
+
+##walletprocessedpsbt from Wallet 2
+
+
+##5. Once all users have signed/processed the joined PSBT, coordinator uses combinepsbt.
+combinepsbt '["",""]'
+
+##6. Coordinator uses finalizepsbt and then transmits to the network using sendrawtransaction.
+finalizepsbt psbt_raw_hex
+
+##7 This outputs the raw transaction hex
+sendrawtransaction Raw_Tx-Hex

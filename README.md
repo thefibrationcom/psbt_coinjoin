@@ -1,42 +1,43 @@
 # psbt_coinjoin
  PSBT CoinJoin is a privacy-enhancing technique for Bitcoin transactions that allows multiple users to combine their inputs and outputs in a single transaction without revealing individual ownership details.
-## **Objectives:**
+## Objectives
 
-- Outline simple 2-input/2-output and 10-input/10-output CoinJoin methods.
-- Introduce the Pre-Mix concept.
-- Discuss equal and unequal outputs, as well as equal change outputs.
-- Detail the Partially Signed Bitcoin Transaction (PSBT) workflow for multiple participant CoinJoins.
-- Propose automation through code and plugins for Bitcoin Core.
+- Simple 2-input/2-output and 10-input/10-output CoinJoins
+- The Pre-Mix concept
+- Strategies for equal and unequal outputs, and equal change outputs
+- The PSBT workflow for multiple participant CoinJoins
+- Automation possibilities through code, potentially as a plugin for Bitcoin Core
+- Ideas for post CoinJoin use, including Cold Storage and Merchant Payments
+- Considerations on costs and fees
 
-## **Getting Started:**
+## Creating CoinJoin Transactions
 
-### **Simple 2-Input/2-Output CoinJoin Transaction:**
+### Simple 2-Input/2-Output CoinJoin Transaction
 
-1. Use **`listunspent`** to gather UTXO information.
-2. Calculate CoinJoin output value.
-3. Generate new receive addresses.
-4. Create a raw transaction.
-5. Sign the transaction.
-6. Verify and send the transaction.
+1. **Gather UTXOs:** Use `listunspent` to gather UTXOs, noting their "txid" and "vout" info.
+2. **Calculate Outputs:** Add UTXO values, subtract fees (F), and divide the remaining value by 2 to determine CoinJoin outputs.
+3. **Create Transaction:** Use `createrawtransaction` with the UTXOs, new receive addresses, and calculated outputs.
+4. **Sign and Send:** Sign the transaction with `signrawtransactionwithwallet`, double-check with `decoderawtransaction`, then send with `sendrawtransaction`.
 
-### **Complex 10-Input/10-Output CoinJoin Transaction:**
+### Creating a 10-Input/10-Output CoinJoin Transaction
 
-1. Follow the same steps as the simple transaction but adjust for multiple inputs and outputs.
+1. **Gather UTXOs:** Same as above, but divide the remaining value by 10 for outputs.
+2. **Create Transaction:** Same steps as above for creating and sending the transaction.
 
-### **Equal and Unequal CoinJoin Outputs:**
+## CoinJoin Output Strategies
 
-- Discuss the creation of equal and unequal outputs to enhance privacy.
+### Equal and Unequal Outputs
 
-### **Equal Change CoinJoin Outputs:**
+- **Equal Outputs:** Split total input value into equal parts.
+- **Unequal Outputs:** Allows for different output values, enhancing privacy.
 
-- Explore options for dealing with odd-valued change amounts.
+### Equal Change Outputs
 
-### **PSBT Workflow for Multiple Participant CoinJoins:**
+- **Handling Odd Change:** Strategies for dealing with odd-valued change, including dividing into equal outputs or paying as fees.
 
-1. Coordinator creates a PSBT.
-2. Users send their PSBTs to the coordinator.
-3. Coordinator joins the PSBTs into one.
-4. Coordinator sends the combined PSBT back to users.
-5. Users sign the PSBT and send it back to the coordinator.
-6. Coordinator finalizes the PSBT and transmits it to the network.
-7. Verify fees with **`decodepsbt`**.
+## PSBT Workflow for Multiple Participant CoinJoins
+
+1. **Create PSBT:** Individual users create PSBTs.
+2. **Join PSBTs:** Coordinator combines separate PSBTs into one using `joinpsbts`.
+3. **User Signing:** Each user signs the joined PSBT and sends it back to the coordinator.
+4. **Finalization and Transmission:** Coordinator finalizes the PSBT with `finalizepsbt` and transmits it to the network using `sendrawtransaction`.
